@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-# Att göra:
-# 1. KML-inläsningen verkar inte ske i undermappar
+#TODO:
 # 2. filnamnsargument
 # 3. testa nummer för symboler som saknas (tex. 'Mine')
 # 3. kontroll av monterad Fenix
@@ -153,7 +152,7 @@ class KMLDocument(object):
 			self.stylemap[style_mapping.attrib['id']] = style_definitions[style_url]
 			#print "%s -> %s" % (style_mapping.attrib['id'], style_definitions[style_url])
 
-		for placemark in kml.xpath('//kml:Document/*/kml:Placemark', namespaces=kml_ns):
+		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):
 			points = placemark.xpath('kml:Point', namespaces=kml_ns)
 			name = placemark.findtext('kml:name', namespaces=kml_ns)
 			style = placemark.findtext('kml:styleUrl', namespaces=kml_ns)
@@ -232,7 +231,7 @@ class GarminGPXDocument(object):
 
 		self.xml.write(file, xml_declaration=True, encoding='utf-8')
 
-input = KMLDocument('~/Desktop/Marint.kml')
+input = KMLDocument('Marint.kml')
 input.read()
 
 output_doc = GarminGPXDocument('mar')
