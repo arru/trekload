@@ -1,67 +1,179 @@
 # -*- coding: UTF-8 -*-
 
 #TODO:
-# 2. filnamnsargument
-# 3. testa nummer för symboler som saknas (tex. 'Mine')
-# 3. kontroll av monterad Fenix
+# 1. kontroll av monterad Fenix
+# 2. skriv banor som banor eller medianpunkt
+#3. strippa bort all HTML från description och lägg i desc eller cmt
 
 import unicodedata
+import argparse
+import os.path
+
+from random import random
 
 from lxml import etree
+import lxml.html.clean
 
-symbol_default = 'Flag, Blue'
+symbol_default = 'White Dot'
 
-#http://home.online.no/~sigurdhu/MapSource-text.htm
-#http://home.online.no/~sigurdhu/12MAP_symbols.htm
+mollet = '/Users/arru/Library/Application Support/Google Earth/mollet/'
+
+# http://home.online.no/~sigurdhu/MapSource-text.htm
+# http://home.online.no/~sigurdhu/12MAP_symbols.htm
+
+
+fenix_sym_missing = (
+	'Ball Park',
+	'Bar',
+	'Beach',
+	'Bell',
+	'Bike Trail',
+	'Blue Pin',
+	'Bridge',
+	'Cemetery',
+	'Circle with X',
+	'City (Capitol)',
+	'City (small)',
+	'Civil',
+	'Civil',
+	'Contact, Biker',
+	'Contact, Ranger',
+	'Controlled Area',
+	'Convenience Store',
+	'Crossing',
+	'Dam',
+	'Danger Area',
+	'Diver Down Flag 1',
+	'Diver Down Flag 2',
+	'Drinking Water',
+	'Exit',
+	'Fast Food',
+	'Forest',
+	'Green Diamond',
+	'Green Square',
+	'Horn',
+	'Hunting Area',
+	'Ice Skating Area',
+	'Large City', 	'Light',
+	'Medium City',
+	'Movie Theater',
+	'Museum',
+	'Navaid, Amber',
+	'Navaid, White',
+	'Oil Field',
+	'Parking Area',
+	'Parking',
+	'Pharmacy',
+	'Pizza',
+	'Police Station',
+	'Post Office',
+	'Radio Beacon',
+	'Red Square',
+	'Restricted Area',
+	'RV Park',
+	'Scales',
+	'School',
+	'Shopping Center',
+	'Shopping',
+	'Short Tower',
+	'Small City',
+	'Summit',
+	'Tall Tower',
+	'Theater',
+	'Toll Booth',
+	'Truck Stop',
+	'Tunnel',
+	'Water Hydrant',
+	'White Buoy',
+	'Zoo',
+)
+
+fenix_sym_set = (
+	'Airport',
+	'Amusement Park',
+	'Anchor',
+	'Bank',
+	'Boat Ramp',
+	'Building',
+	'Campground',
+	'Car',
+	'Dot, White',
+	'Fishing Area',
+	'Flag, Blue',
+	'Gas Station',
+	'Geocache Found',
+	'Geocache',
+	'Ghost Town',
+	'Golf Course',
+	'Heliport',
+	'Information',
+	'Levee',
+	'Lodging',
+	'Medical Facility',
+	'Military'
+	'Parachute Area',
+	'Park',
+	'Picnic Area',
+	'Private Field', #rendered like 'Restricted Area'
+	'Residence',
+	'Residence',
+	'Restaurant',
+	'Restroom',
+	'Scenic Area',
+	'Skiing Area',
+	'Skull and Crossbones',
+	'Soft Field',
+	'Swimming Area',
+	'Telephone',
+	'Trail Head',
+	'Waypoint',
+)
+
+ggpx_industrial = 'Ghost Town'
+
+#Test icon IDs
+test_items = ()
+
+#Arvids
+kml_to_ggpx_overrides = {
+	'http://maps.google.com/mapfiles/kml/shapes/police.png':'Private Field',
+	'http://www.klavrestromsvhem.g.se/bilder/stfmini.gif':'Lodging',
+	'http://industrisemester.nu/sites/default/files/images/erskine-ballong-128.png':'Parachute Area',
+	'/Users/arru/Library/Application Support/Google Earth/neon.png':'Bank',
+	'/Users/arru/Pictures/Symboler/Vägmärken/Sevärdhet.png':'Scenic Area',
+	'/Users/arru/Library/Application Support/Google Earth/Turistväg.png':'Scenic Area',
+	mollet + 'woodshed.png':ggpx_industrial,
+	mollet + 'factory.png':ggpx_industrial,
+	mollet + 'cablecar.png':'Heliport',
+	mollet + 'oilpumpjack.png':'Gas Station',
+	mollet + 'fillingstation.png':'Gas Station',
+	mollet + 'car.png':'Car',
+	mollet + 'highway.png':'Car',
+	mollet + 'steamtrain.png':ggpx_industrial,
+	mollet + 'windturbine.png':ggpx_industrial,
+	mollet + 'dam.png':'Levee',
+	mollet + 'watertower.png':ggpx_industrial,
+	mollet + 'bridge_modern.png':'Picnic Area',
+	mollet + 'bunker.png':'Military',
+	mollet + 'harbor.png':'Anchor',
+	mollet + 'lighthouse.png':'Anchor',
+	mollet + 'shipwreck.png':'Shipwreck',
+	mollet + 'mine.png':'Golf Course',
+	mollet + 'targ.png':'Amusement Park',
+	mollet + 'apartment-3.png':'Building',
+	mollet + 'publicart.png':'Scenic Area',
+	mollet + 'phantom.png':'Residence',
+	mollet + 'observatory.png':'Building',
+	}
+
+#Standard KML icon equivalents
 kml_to_ggpx_symbols = {
-					#'':'Boat Ramp',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/apartment-3.png':'Building',
-					#'':'Geocache Found',
-					#'':'Geocache',
-					#'':'Hunting Area',
-					#'':'Parachute Area'
-
-					#'':'Beach',
-					#'':'City (Capitol)',
-					#'':'Crossing',
-					#'':'Fast Food',
-					#'':'Crossing',
-					'http://www.klavrestromsvhem.g.se/bilder/stfmini.gif':'Lodging',
-					'http://maps.google.com/mapfiles/kml/shapes/lodging.png':'Lodging',
-					'http://maps.google.com/mapfiles/kml/shapes/caution.png':'Skull and Crossbones',
-					'http://maps.google.com/mapfiles/kml/shapes/caution.png':'Danger Area',
-					'http://maps.google.com/mapfiles/kml/shapes/bars.png':'Bar',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/dam.png':'Dam',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/dam.png':'Levee',
-					'http://mw1.google.com/mw-earth-vectordb/smartmaps_icons/museum-15.png':'Museum',
-					#'/Users/arru/Library/Application Support/Google Earth/mollet/oilpumpjack.png':'Oil Field',
-					'http://maps.google.com/mapfiles/kml/shapes/parking_lot.png':'Parking Area',
-					#'':'Private Field',
-					#'':'Restricted Area',
-					#'':'Bell'
-					#'':'Summit',
-					#'':'Truck Stop',
-					#'':'Forest',
-					#'':'Cemetery',
-					'http://maps.google.com/mapfiles/kml/shapes/ranger_station.png':'School',
-					'http://maps.google.com/mapfiles/kml/shapes/grocery.png':'Shopping Center',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/powerlinepole.png':'Tall Tower',
-					'http://maps.google.com/mapfiles/kml/shapes/subway.png':'Tunnel',
-					'http://maps.google.com/mapfiles/kml/shapes/poi.png':'Waypoint',
-					'http://mw1.google.com/mw-earth-vectordb/smartmaps_icons/zoo-15.png':'Zoo',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/targ.png':'Amusement Park',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/bridge_modern.png':'Bridge',
-					#'':'Contact, Biker',
-					'http://maps.google.com/mapfiles/kml/shapes/police.png':'Contact, Ranger',
-
-					'/Users/arru/Library/Application Support/Google Earth/mollet/bunker.png':'Military',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/phantom.png':'Ghost Town',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/harbor.png':'Anchor',
-					'/Users/arru/Library/Application Support/Google Earth/mollet/shipwreck.png':'Shipwreck',
-					'http://maps.google.com/mapfiles/kml/shapes/airports.png':'Airport',
+					#'http://maps.google.com/mapfiles/kml/shapes/grocery.png':'Shopping Center',
+					#'http://mw1.google.com/mw-earth-vectordb/smartmaps_icons/museum-15.png':'Museum',					'http://maps.google.com/mapfiles/kml/pal4/icon61.png':'Flag, Blue',
 					'http://maps.google.com/mapfiles/kml/shapes/cabs.png':'Car',
 					'http://maps.google.com/mapfiles/kml/shapes/camera.png':'Scenic Area',
 					'http://maps.google.com/mapfiles/kml/shapes/campground.png':'Campground',
+					'http://maps.google.com/mapfiles/kml/shapes/caution.png':'Skull and Crossbones',
 					'http://maps.google.com/mapfiles/kml/shapes/dining.png':'Restaurant',
 					'http://maps.google.com/mapfiles/kml/shapes/dollar.png':'Bank',
 					'http://maps.google.com/mapfiles/kml/shapes/fishing.png':'Fishing Area',
@@ -71,39 +183,44 @@ kml_to_ggpx_symbols = {
 					'http://maps.google.com/mapfiles/kml/shapes/hiker.png':'Trail Head',
 					'http://maps.google.com/mapfiles/kml/shapes/homegardenbusiness.png':'Residence',
 					'http://maps.google.com/mapfiles/kml/shapes/hospitals.png':'Medical Facility',
-					'http://maps.google.com/mapfiles/kml/shapes/info_circle.png':'City (small)',
 					'http://maps.google.com/mapfiles/kml/shapes/info_circle.png':'Information',
+					'http://maps.google.com/mapfiles/kml/shapes/lodging.png':'Lodging',
 					'http://maps.google.com/mapfiles/kml/shapes/marina.png':'Anchor',
 					'http://maps.google.com/mapfiles/kml/shapes/open-diamond.png':'Dot, White',
+					'http://maps.google.com/mapfiles/kml/shapes/parking_lot.png':'Car',
 					'http://maps.google.com/mapfiles/kml/shapes/parks.png':'Park',
 					'http://maps.google.com/mapfiles/kml/shapes/phone.png':'Telephone',
 					'http://maps.google.com/mapfiles/kml/shapes/picnic.png':'Picnic Area',
+					'http://maps.google.com/mapfiles/kml/shapes/poi.png':'Waypoint',
 					'http://maps.google.com/mapfiles/kml/shapes/ski.png':'Skiing Area',
 					'http://maps.google.com/mapfiles/kml/shapes/swimming.png':'Swimming Area',
 					'http://maps.google.com/mapfiles/kml/shapes/toilets.png':'Restroom',
-					#'/Users/arru/Library/Application Support/Google Earth/mollet/mine.png':'Mine',
+					'http://maps.google.com/mapfiles/kml/shapes/airports.png':'Airport',
 					'':symbol_default
 				}
+
+kml_to_ggpx_symbols.update (kml_to_ggpx_overrides)
 
 gpx_version = "1.0"
 
 kml_ns = {'kml':'http://www.opengis.net/kml/2.2'}
 
 class Waypoint(object):
-	def __init__(self, lat_init, lon_init, name_init='Untitled', alt_init=None, kml_icon=None):
+	def __init__(self, lat_init, lon_init, name='Untitled', alt_init=None, icon=None):
 		self.lat = lat_init
 		self.lon = lon_init
 		self.alt = alt_init
-		self.name = name_init
+		self.name = name.encode('utf8')
 		self.icons = {}
 
-		if kml_icon:
-			self._setIcon ('kml', kml_icon)
+		if icon:
+			self._setIcon (icon[0], icon[1])
+		print self.icons
 
 	def _setIcon(self, format, id):
 		self.icons[format] = id
 
-		if(format != 'ggpx' and 'kml' in self.icons):
+		if(format == 'kml'):
 			if(id in kml_to_ggpx_symbols):
 				self.icons['ggpx'] = kml_to_ggpx_symbols[self.icons['kml']]
 			else:
@@ -125,7 +242,8 @@ class KMLDocument(object):
 		self.waypoints = []
 
 	def read(self):
-		kml = etree.parse(self.path) #.getroot()
+		"""Read KML data from file at self.path"""
+		kml = etree.parse(self.path)
 		style_definitions = {}
 
 		#read style definitions
@@ -170,9 +288,9 @@ class KMLDocument(object):
 				if (len(coords) >= 3):
 					alt = float(coords[2])
 
-				print icon
-				read_waypoint = Waypoint(lat, lon, name, alt, icon)
-				print "Read waypoint %s" % read_waypoint
+				#print icon
+				read_waypoint = Waypoint(lat, lon, name, alt, ('kml', icon))
+				#print "Read waypoint %s" % read_waypoint
 				self.waypoints.append(read_waypoint)
 			else:
 				#if there is no point, either the KML is malformed or there might be a LineString
@@ -181,7 +299,7 @@ class KMLDocument(object):
 
 class GarminGPXDocument(object):
 	def __init__(self, name='output'):
-		self.name = name
+		self.name = name.encode('ascii', 'ignore')
 		self.waypoints = []
 
 		self.data = etree.Element('gpx',
@@ -201,13 +319,13 @@ class GarminGPXDocument(object):
 
 	def addPoints(self, wpoint_list):
 		for wpoint in wpoint_list:
+			print "adding point"
 			self.addPoint(wpoint)
 
 	def addPoint(self, wpoint):
 		self.waypoints.append(wpoint)
 
 	def close(self):
-		#def close_spider (self, spider):
 		# Save to XML file
 		file = open('%s.gpx' % self.name, 'wb')
 
@@ -215,26 +333,61 @@ class GarminGPXDocument(object):
 			if(wp.lat is not None and wp.lon is not None):
 				wpt = etree.SubElement(self.data, 'wpt', lat=str(wp.lat), lon=str(wp.lon))
 				name = etree.SubElement(wpt, 'name')
-				name.text = wp.name
-				if (wp.alt is not None):
+
+				name.text = etree.CDATA(wp.name.decode('utf-8'))
+
+				if (wp.alt and wp.alt != 0.0):
 					ele = etree.SubElement(wpt, 'ele')
 					ele.text = str(wp.alt)
 
-				#strippa bort all HTML från description och lägg i desc eller cmt
-
-					sym = etree.SubElement(wpt, 'sym')
-					if('ggpx' in wp.icons):
-						sym.text = wp.icons['ggpx']
-					else:
-						sym.text = symbol_default
-			print "Writing waypoint %s" % wp.name
+				sym = etree.SubElement(wpt, 'sym')
+				if('ggpx' in wp.icons):
+					sym.text = wp.icons['ggpx']
+				else:
+					sym.text = symbol_default
+			print "Writing waypoint %s" % name.text
 
 		self.xml.write(file, xml_declaration=True, encoding='utf-8')
 
-input = KMLDocument('Marint.kml')
-input.read()
+#Main program flow
 
-output_doc = GarminGPXDocument('mar')
-#output_doc = GarminGPXDocument('/Volumes/GARMIN/Garmin/GPX/marint')
-output_doc.addPoints(input.waypoints)
+parser = argparse.ArgumentParser(description='Process KML data and write to Garmin Fenix as .gpx')
+parser.add_argument('--test', action="store_true",
+                   help='Output test gpx with symbols 0-test max')
+parser.add_argument('--dest', metavar='d', default=None,
+                   help="Specify a destination for output file. Default: Fenix' GPX folder")
+parser.add_argument('input', default=None,
+                   help='Input KML file (ignored in test mode)')
+
+args = parser.parse_args()
+
+dest = args.dest
+if args.dest is None:
+	dest = "/Volumes/GARMIN/Garmin/GPX/%s" % os.path.basename(args.input)
+
+output_doc = GarminGPXDocument(dest)
+
+if (args.test):
+	test_center = (59.6, 16.53)
+	test_radius = 0.1
+
+	test_step = test_radius / (len(test_items) + 1)
+	r = test_step
+	#for d in range(0, args.test):
+	for d in test_items:
+		direction = [random()*2.0 - 1.0, random()*2.0 - 1.0]
+		r = r + test_step
+		offset = [v * r for v in direction]
+		point = [test_center[i] + offset[i] for i in range(0, 2)]
+		test_wp = Waypoint(point[0], point[1], name=d, icon=('ggpx', str(d)))
+
+		output_doc.addPoint(test_wp)
+else:
+	#regular run (not test mode)
+	assert(args.input is not None)
+
+	input = KMLDocument(args.input)
+	input.read()
+	output_doc.addPoints(input.waypoints)
+
 output_doc.close()
