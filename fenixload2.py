@@ -3,7 +3,10 @@
 #TODO:
 # 1. kontroll av monterad Fenix
 # 2. skriv banor som banor eller medianpunkt
-#3. strippa bort all HTML från description och lägg i desc eller cmt
+# 3. input från my places och hela mappar
+
+#Test icon IDs
+from fenixload_conf import kml_to_ggpx_overrides, test_items
 
 import unicodedata
 import argparse
@@ -16,11 +19,8 @@ import lxml.html.clean
 
 symbol_default = 'White Dot'
 
-mollet = '/Users/arru/Library/Application Support/Google Earth/mollet/'
-
 # http://home.online.no/~sigurdhu/MapSource-text.htm
 # http://home.online.no/~sigurdhu/12MAP_symbols.htm
-
 
 fenix_sym_missing = (
 	'Ball Park',
@@ -128,43 +128,6 @@ fenix_sym_set = (
 	'Trail Head',
 	'Waypoint',
 )
-
-ggpx_industrial = 'Ghost Town'
-
-#Test icon IDs
-test_items = ()
-
-#Arvids
-kml_to_ggpx_overrides = {
-	'http://maps.google.com/mapfiles/kml/shapes/police.png':'Private Field',
-	'http://www.klavrestromsvhem.g.se/bilder/stfmini.gif':'Lodging',
-	'http://industrisemester.nu/sites/default/files/images/erskine-ballong-128.png':'Parachute Area',
-	'/Users/arru/Library/Application Support/Google Earth/neon.png':'Bank',
-	'/Users/arru/Pictures/Symboler/Vägmärken/Sevärdhet.png':'Scenic Area',
-	'/Users/arru/Library/Application Support/Google Earth/Turistväg.png':'Scenic Area',
-	mollet + 'woodshed.png':ggpx_industrial,
-	mollet + 'factory.png':ggpx_industrial,
-	mollet + 'cablecar.png':'Heliport',
-	mollet + 'oilpumpjack.png':'Gas Station',
-	mollet + 'fillingstation.png':'Gas Station',
-	mollet + 'car.png':'Car',
-	mollet + 'highway.png':'Car',
-	mollet + 'steamtrain.png':ggpx_industrial,
-	mollet + 'windturbine.png':ggpx_industrial,
-	mollet + 'dam.png':'Levee',
-	mollet + 'watertower.png':ggpx_industrial,
-	mollet + 'bridge_modern.png':'Picnic Area',
-	mollet + 'bunker.png':'Military',
-	mollet + 'harbor.png':'Anchor',
-	mollet + 'lighthouse.png':'Anchor',
-	mollet + 'shipwreck.png':'Shipwreck',
-	mollet + 'mine.png':'Golf Course',
-	mollet + 'targ.png':'Amusement Park',
-	mollet + 'apartment-3.png':'Building',
-	mollet + 'publicart.png':'Scenic Area',
-	mollet + 'phantom.png':'Residence',
-	mollet + 'observatory.png':'Building',
-	}
 
 #Standard KML icon equivalents
 kml_to_ggpx_symbols = {
