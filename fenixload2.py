@@ -206,16 +206,17 @@ gpx_version = "1.0"
 kml_ns = {'kml':'http://www.opengis.net/kml/2.2'}
 
 class Waypoint(object):
-	def __init__(self, lat_init, lon_init, name='Untitled', alt_init=None, icon=None):
+	def __init__(self, lat_init, lon_init, name='Untitled', alt_init=None, icon=None, description=None):
 		self.lat = lat_init
 		self.lon = lon_init
 		self.alt = alt_init
 		self.name = name.encode('utf8')
 		self.icons = {}
+		self.description = description
 
 		if icon:
 			self._setIcon (icon[0], icon[1])
-		print self.icons
+		#print self.icons
 
 	def _setIcon(self, format, id):
 		self.icons[format] = id
@@ -274,6 +275,15 @@ class KMLDocument(object):
 			points = placemark.xpath('kml:Point', namespaces=kml_ns)
 			name = placemark.findtext('kml:name', namespaces=kml_ns)
 			style = placemark.findtext('kml:styleUrl', namespaces=kml_ns)
+			desc_str = placemark.findtext('kml:description', namespaces=kml_ns)
+
+			desc = None
+			if desc_str:
+				desc_html = lxml.html.fromstring(desc_str)
+				cleaner = lxml.html.clean.Cleaner(allow_tags=[], remove_unknown_tags=True)
+				stripped_html = cleaner.clean_html(desc_html)
+
+				desc = stripped_html.text_content()
 
 			if (style is not None):
 				icon = self.stylemap[style[1:]]
@@ -288,9 +298,7 @@ class KMLDocument(object):
 				if (len(coords) >= 3):
 					alt = float(coords[2])
 
-				#print icon
-				read_waypoint = Waypoint(lat, lon, name, alt, ('kml', icon))
-				#print "Read waypoint %s" % read_waypoint
+				read_waypoint = Waypoint(lat, lon, name, alt, ('kml', icon), description=desc)
 				self.waypoints.append(read_waypoint)
 			else:
 				#if there is no point, either the KML is malformed or there might be a LineString
@@ -299,7 +307,8 @@ class KMLDocument(object):
 
 class GarminGPXDocument(object):
 	def __init__(self, name='output'):
-		self.name = name.encode('ascii', 'ignore')
+		udata = name.decode("utf-8")
+		self.name = udata.encode('ascii', 'ignore')
 		self.waypoints = []
 
 		self.data = etree.Element('gpx',
@@ -319,7 +328,6 @@ class GarminGPXDocument(object):
 
 	def addPoints(self, wpoint_list):
 		for wpoint in wpoint_list:
-			print "adding point"
 			self.addPoint(wpoint)
 
 	def addPoint(self, wpoint):
@@ -334,7 +342,8 @@ class GarminGPXDocument(object):
 				wpt = etree.SubElement(self.data, 'wpt', lat=str(wp.lat), lon=str(wp.lon))
 				name = etree.SubElement(wpt, 'name')
 
-				name.text = etree.CDATA(wp.name.decode('utf-8'))
+				#name.text = etree.CDATA(wp.name.decode('utf-8'))
+				name.text = wp.name.decode('utf-8')
 
 				if (wp.alt and wp.alt != 0.0):
 					ele = etree.SubElement(wpt, 'ele')
@@ -345,7 +354,15 @@ class GarminGPXDocument(object):
 					sym.text = wp.icons['ggpx']
 				else:
 					sym.text = symbol_default
-			print "Writing waypoint %s" % name.text
+
+				if wp.description:
+					desc = etree.SubElement(wpt, 'desc')
+					#desc.text = etree.CDATA(wp.description)
+
+					if len(wp.description) > 50:
+						desc.text = wp.description[0:49] + u"…"
+					else:
+						desc.text = wp.description
 
 		self.xml.write(file, xml_declaration=True, encoding='utf-8')
 
