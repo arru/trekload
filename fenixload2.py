@@ -12,6 +12,7 @@ import unicodedata
 import argparse
 import os.path
 
+import re
 from random import random
 
 from lxml import etree
@@ -168,18 +169,16 @@ gpx_version = "1.0"
 
 kml_ns = {'kml':'http://www.opengis.net/kml/2.2'}
 
-class Waypoint(object):
-	def __init__(self, lat_init, lon_init, name='Untitled', alt_init=None, icon=None, description=None):
-		self.lat = lat_init
-		self.lon = lon_init
-		self.alt = alt_init
+class Track(object):
+	def __init__(self, coords, name='Untitled', icon=None, description=None):
+		self.coords = []
+		self.coords.extend(coords)
 		self.name = name.encode('utf8')
 		self.icons = {}
 		self.description = description
 
 		if icon:
 			self._setIcon (icon[0], icon[1])
-		#print self.icons
 
 	def _setIcon(self, format, id):
 		self.icons[format] = id
@@ -190,13 +189,62 @@ class Waypoint(object):
 			else:
 				self.icons['ggpx'] = None
 
+	def _makePoint(self, parent, coord, type_code):
+		wpt = etree.SubElement(parent, type_code, lat=str(coord[0]), lon=str(coord[1]))
+		if (len(coord) == 3 and coord[2] != 0.0):
+			ele = etree.SubElement(wpt, 'ele')
+			ele.text = str(coord[2])
+
+		return wpt
+
+	def _makeMetadata(self, parent):
+		name = etree.SubElement(parent, 'name')
+
+		#name.text = etree.CDATA(self.name.decode('utf-8'))
+		name.text = self.name.decode('utf-8')
+
+		sym = etree.SubElement(parent, 'sym')
+		if('ggpx' in self.icons):
+			sym.text = self.icons['ggpx']
+		else:
+			sym.text = symbol_default
+
+		if self.description:
+			desc = etree.SubElement(parent, 'desc')
+			#desc.text = etree.CDATA(self.description)
+
+			if len(self.description) > 50:
+				desc.text = self.description[0:49] + u"…"
+			else:
+				desc.text = self.description
+
+	def outputGPX(self, parent):
+		trk = etree.SubElement(parent, 'trk')
+		seg = etree.SubElement(trk, 'trkseg')
+
+		assert (len(self.coords) > 0)
+		for c in self.coords:
+			self._makePoint(seg, c, 'trkpt')
+
+		self._makeMetadata(trk)
+
 	def __str__(self):
-		return "%s: %f,%f (%f m) - %s" % (
+		return "%s: %s, - %s" % (
 			self.name,
-			self.lat,
-           	self.lon,
-			self.alt,
+			self.coords,
 			self.icons)
+
+class Waypoint(Track):
+	def __init__(self, coord3D, name='Untitled', icon=None, description=None):
+		Track.__init__(self, [coord3D], name, icon, description)
+
+	def outputGPX(self, parent):
+		if len(self.coords) == 1:
+			wpt = self._makePoint(parent, self.coords[0], 'wpt')
+			self._makeMetadata(wpt)
+		else:
+			assert (len(self.coords) == 0)
+
 
 class KMLDocument(object):
 	def __init__(self, path):
@@ -209,6 +257,8 @@ class KMLDocument(object):
 		"""Read KML data from file at self.path"""
 		kml = etree.parse(self.path)
 		style_definitions = {}
+
+		line_string_pattern = re.compile("\s*(?:([\d]*[\.]?[\d]+),)(?:([\d]*[\.]?[\d]+),)?([\d]*[\.]?[\d]+)\s+")
 
 		#read style definitions
 		for style in kml.xpath('//kml:Document/kml:Style', namespaces=kml_ns):
@@ -232,7 +282,7 @@ class KMLDocument(object):
 
 			assert(style_url)
 			self.stylemap[style_mapping.attrib['id']] = style_definitions[style_url]
-			#print "%s -> %s" % (style_mapping.attrib['id'], style_definitions[style_url])
+			#print "%s -> %s" % (style_mapping.attrib['id'], style_definitions[style_urself.		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):
 
 		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):
 			points = placemark.xpath('kml:Point', namespaces=kml_ns)
@@ -251,21 +301,33 @@ class KMLDocument(object):
 			if (style is not None):
 				icon = self.stylemap[style[1:]]
 
+			coords = []
 			if (len(points) == 1):
 				point = points[0]
-				coords = point.findtext('kml:coordinates', namespaces=kml_ns).split(',')
+				raw_coords = point.findtext('kml:coordinates', namespaces=kml_ns).split(',')
 
-				lat = float(coords[1])
-				lon = float(coords[0])
-				alt = None
-				if (len(coords) >= 3):
-					alt = float(coords[2])
+				if (len(raw_coords) >= 3):
+					point = (float(raw_coords[1]), float(raw_coords[0]), float(raw_coords[2]))
+				else:
+					point = (float(raw_coords[1]), float(raw_coords[0]))
 
-				read_waypoint = Waypoint(lat, lon, name, alt, ('kml', icon), description=desc)
+				read_waypoint = Waypoint(point, name, ('kml', icon), description=desc)
 				self.waypoints.append(read_waypoint)
 			else:
-				#if there is no point, either the KML is malformed or there might be a LineString
-				print "Skipping %s" % placemark
+				line_coords_chunk = placemark.findtext('kml:LineString/kml:coordinates', namespaces=kml_ns)
+				if line_coords_chunk is not None:
+					line_tokens = line_string_pattern.findall(line_coords_chunk)
+
+					for c in line_tokens:
+						if len(c) == 2:
+							coords.append((float(c[1]), float(c[0]), float(c[2])))
+						else:
+							coords.append((float(c[1]), float(c[0])))
+
+					read_track = Track(coords, name, ('kml', icon), description=desc)
+					self.waypoints.append(read_track)
+				else:
+					print "Warning: skipping %s b/c unrecognized placemark type" % placemark
 
 
 class GarminGPXDocument(object):
@@ -301,31 +363,7 @@ class GarminGPXDocument(object):
 		file = open('%s.gpx' % self.name, 'wb')
 
 		for wp in self.waypoints:
-			if(wp.lat is not None and wp.lon is not None):
-				wpt = etree.SubElement(self.data, 'wpt', lat=str(wp.lat), lon=str(wp.lon))
-				name = etree.SubElement(wpt, 'name')
-
-				#name.text = etree.CDATA(wp.name.decode('utf-8'))
-				name.text = wp.name.decode('utf-8')
-
-				if (wp.alt and wp.alt != 0.0):
-					ele = etree.SubElement(wpt, 'ele')
-					ele.text = str(wp.alt)
-
-				sym = etree.SubElement(wpt, 'sym')
-				if('ggpx' in wp.icons):
-					sym.text = wp.icons['ggpx']
-				else:
-					sym.text = symbol_default
-
-				if wp.description:
-					desc = etree.SubElement(wpt, 'desc')
-					#desc.text = etree.CDATA(wp.description)
-
-					if len(wp.description) > 50:
-						desc.text = wp.description[0:49] + u"…"
-					else:
-						desc.text = wp.description
+			wp.outputGPX(self.data)
 
 		self.xml.write(file, xml_declaration=True, encoding='utf-8')
 
@@ -343,7 +381,7 @@ args = parser.parse_args()
 
 dest = args.dest
 if args.dest is None:
-	dest = "/Volumes/GARMIN/Garmin/GPX/%s" % os.path.basename(args.input)
+	dest = "/Volumes/GARMIN/Garmin/GPX/%s" % os.path.splitext(os.path.basename(args.input))[0]
 
 output_doc = GarminGPXDocument(dest)
 
@@ -359,7 +397,7 @@ if (args.test):
 		r = r + test_step
 		offset = [v * r for v in direction]
 		point = [test_center[i] + offset[i] for i in range(0, 2)]
-		test_wp = Waypoint(point[0], point[1], name=d, icon=('ggpx', str(d)))
+		test_wp = Waypoint(point, name=d, icon=('ggpx', str(d)))
 
 		output_doc.addPoint(test_wp)
 else:
