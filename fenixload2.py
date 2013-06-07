@@ -2,8 +2,8 @@
 
 #TODO:
 # 1. kontroll av monterad Fenix
-# 2. skriv banor som banor eller medianpunkt
-# 3. input från my places och hela mappar
+# 2. input från my places och hela mappar
+# 3. alternativ för att helt skippa höjddata
 
 #Test icon IDs
 from fenixload_conf import kml_to_ggpx_overrides, test_items
@@ -117,7 +117,6 @@ fenix_sym_set = (
 	'Picnic Area',
 	'Private Field', #rendered like 'Restricted Area'
 	'Residence',
-	'Residence',
 	'Restaurant',
 	'Restroom',
 	'Scenic Area',
@@ -169,6 +168,8 @@ gpx_version = "1.0"
 
 kml_ns = {'kml':'http://www.opengis.net/kml/2.2'}
 
+median_point_suffix = '(mitten)'
+
 class Track(object):
 	def __init__(self, coords, name='Untitled', icon=None, description=None):
 		self.coords = []
@@ -197,11 +198,14 @@ class Track(object):
 
 		return wpt
 
-	def _makeMetadata(self, parent):
+	def _makeMetadata(self, parent, option=''):
 		name = etree.SubElement(parent, 'name')
 
 		#name.text = etree.CDATA(self.name.decode('utf-8'))
-		name.text = self.name.decode('utf-8')
+		if option == 'point':
+			name.text = "%s %s" % (self.name.decode('utf-8'), median_point_suffix)
+		else:
+			name.text = self.name.decode('utf-8')
 
 		sym = etree.SubElement(parent, 'sym')
 		if('ggpx' in self.icons):
@@ -218,15 +222,23 @@ class Track(object):
 			else:
 				desc.text = self.description
 
-	def outputGPX(self, parent):
-		trk = etree.SubElement(parent, 'trk')
-		seg = etree.SubElement(trk, 'trkseg')
+	def outputGPX(self, parent, option):
+		elem = None
+		if option == 'full':
+			elem = etree.SubElement(parent, 'trk')
+			seg = etree.SubElement(elem, 'trkseg')
 
-		assert (len(self.coords) > 0)
-		for c in self.coords:
-			self._makePoint(seg, c, 'trkpt')
+			assert (len(self.coords) > 0)
+			for c in self.coords:
+				self._makePoint(seg, c, type_code='trkpt')
+		elif option == 'point':
+			pt = self.coords[len(self.coords) / 2]
+			elem = self._makePoint(parent, pt, type_code='wpt')
 
-		self._makeMetadata(trk)
+		if elem is None:
+			assert (option == 'skip')
+		else:
+			self._makeMetadata(elem, option)
 
 	def __str__(self):
 		return "%s: %s, - %s" % (
@@ -238,9 +250,9 @@ class Waypoint(Track):
 	def __init__(self, coord3D, name='Untitled', icon=None, description=None):
 		Track.__init__(self, [coord3D], name, icon, description)
 
-	def outputGPX(self, parent):
+	def outputGPX(self, parent, option=''):
 		if len(self.coords) == 1:
-			wpt = self._makePoint(parent, self.coords[0], 'wpt')
+			wpt = self._makePoint(parent, self.coords[0], type_code='wpt')
 			self._makeMetadata(wpt)
 		else:
 			assert (len(self.coords) == 0)
@@ -358,12 +370,12 @@ class GarminGPXDocument(object):
 	def addPoint(self, wpoint):
 		self.waypoints.append(wpoint)
 
-	def close(self):
+	def close(self, option):
 		# Save to XML file
 		file = open('%s.gpx' % self.name, 'wb')
 
 		for wp in self.waypoints:
-			wp.outputGPX(self.data)
+			wp.outputGPX(self.data, option=option)
 
 		self.xml.write(file, xml_declaration=True, encoding='utf-8')
 
@@ -372,6 +384,8 @@ class GarminGPXDocument(object):
 parser = argparse.ArgumentParser(description='Process KML data and write to Garmin Fenix as .gpx')
 parser.add_argument('--test', action="store_true",
                    help='Output test gpx with symbols 0-test max')
+parser.add_argument('--tracks', default='point',
+                   help='KML tracks: full, point or skip. Default: point')
 parser.add_argument('--dest', metavar='d', default=None,
                    help="Specify a destination for output file. Default: Fenix' GPX folder")
 parser.add_argument('input', default=None,
@@ -408,4 +422,4 @@ else:
 	input.read()
 	output_doc.addPoints(input.waypoints)
 
-output_doc.close()
+output_doc.close(option=args.tracks)
