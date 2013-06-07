@@ -449,7 +449,6 @@ else:
 				if fileType.lower() == '.kml':
 					input_files.append(os.path.join(input, fileName))
 	else:
-		print "%s was not a dir" % input
 		assert(os.path.exists(input))
 		input_files.append(input)
 
