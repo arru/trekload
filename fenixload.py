@@ -26,6 +26,9 @@ symbol_default = 'White Dot'
 # http://home.online.no/~sigurdhu/MapSource-text.htm
 # http://home.online.no/~sigurdhu/12MAP_symbols.htm
 
+waypoint_mem_reserve = 25
+fenix_max_waypoints = 1000
+
 fenix_sym_missing = (
 	'Ball Park',
 	'Bar',
@@ -402,17 +405,21 @@ parser.add_argument('--test', action="store_true",
 parser.add_argument('--tracks', default='point',
                    help='KML tracks: full, point or skip. Default: point')
 parser.add_argument('--dest', metavar='d', default=None,
-                   help="Specify a destination for output file. Default: Fenix' GPX folder")
-parser.add_argument('input', default=None,
+                   help="Specify a destination for output file. Must be a directory. Default: Fenix' GPX folder")
+parser.add_argument('--input', default=os.path.expanduser('~/Desktop/'),
                    help='Input KML file (ignored in test mode)')
 
 args = parser.parse_args()
 
-dest = args.dest
-if args.dest is None:
-	dest = "/Volumes/GARMIN/Garmin/GPX/%s" % os.path.splitext(os.path.basename(args.input))[0]
 
-output_doc = GarminGPXDocument(dest)
+#destination
+if args.dest is None:
+	dest_dir = "/Volumes/GARMIN/Garmin/GPX/"
+else:
+	dest_dir = os.path.abspath(args.dest)
+assert (os.path.isdir(dest_dir))
+
+waypoint_counter = 0
 
 if (args.test):
 	test_center = (59.6, 16.53)
@@ -430,17 +437,42 @@ if (args.test):
 
 		output_doc.addPoint(test_wp)
 else:
+	#input file/dir
+	input = os.path.abspath(args.input)
+	input_files = []
+
+	if (os.path.isdir(input)):
+		for fileName in os.listdir(input):
+			splitName = os.path.splitext(fileName)
+			if len(splitName) > 1:
+				fileType = splitName[1]
+				if fileType.lower() == '.kml':
+					input_files.append(os.path.join(input, fileName))
+	else:
+		print "%s was not a dir" % input
+		assert(os.path.exists(input))
+		input_files.append(input)
+
 	#regular run (not test mode)
-	assert(args.input is not None)
+	for file in input_files:
+		dest_filename = os.path.splitext(os.path.basename(file))[0]
+		output_doc = GarminGPXDocument(os.path.join(dest_dir, dest_filename))
 
+		input = KMLDocument(file)
+		input.read()
+		output_doc.addPoints(input.waypoints)
 
-	input = KMLDocument(args.input)
-	input.read()
-	output_doc.addPoints(input.waypoints)
+		output_doc.close(option=args.tracks)
 
-
-output_doc.close(option=args.tracks)
+		num_waypoints = len(output_doc.waypoints)
+		print "Wrote %s\t(%d waypoints)" % (dest_filename, num_waypoints)
+		waypoint_counter += num_waypoints
 
 #FIXME: actually counts number of waypoints AND tracks
 #(each complete track counts as one point)
-print "Wrote %d tracks or waypoints to %s" % (len(output_doc.waypoints), output_doc.path)
+if waypoint_counter >= fenix_max_waypoints:
+	print "Warning: waypoint memory exhausted (%s) by this loading session" % waypoint_counter
+elif waypoint_counter > fenix_max_waypoints - waypoint_mem_reserve:
+	print "Warning: waypoint memory almost exhausted (%s) by this loading session" % waypoint_counter
+else:
+	print "Wrote %d tracks or waypoints" % waypoint_counter
