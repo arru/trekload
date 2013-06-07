@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-
 
 #TODO:
-# 1. bra meddelande - kontroll av monterad Fenix
 # 2. input från my places
 # 3. alternativ för att helt skippa höjddata
 # 4. hantera style mappings inuti waypoints
@@ -301,7 +300,7 @@ class KMLDocument(object):
 
 			assert(style_url)
 			self.stylemap[style_mapping.attrib['id']] = style_definitions[style_url]
-			#print "%s -> %s" % (style_mapping.attrib['id'], style_definitions[style_urself.		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):
+			#logging.debug( "%s -> %s" % (style_mapping.attrib['id'], style_definitions[style_urself.		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):)
 
 		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):
 			points = placemark.xpath('kml:Point', namespaces=kml_ns)
@@ -425,6 +424,8 @@ logging.basicConfig(level=logging.DEBUG)
 #destination
 if args.dest is None:
 	dest_dir = "/Volumes/GARMIN/Garmin/GPX/"
+	if not os.path.isdir(dest_dir):
+		raise IOError(u"Fenix is not mounted. Check your connections or specify a different destination argument")
 else:
 	dest_dir = os.path.abspath(args.dest)
 assert (os.path.isdir(dest_dir))
