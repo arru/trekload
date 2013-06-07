@@ -360,6 +360,7 @@ class GarminGPXDocument(object):
 	def __init__(self, name='output'):
 		udata = name.decode("utf-8")
 		self.name = udata.encode('ascii', 'ignore')
+		self.path = '%s.gpx' % self.name
 		self.waypoints = []
 
 		self.data = etree.Element('gpx',
@@ -386,7 +387,7 @@ class GarminGPXDocument(object):
 
 	def close(self, option):
 		# Save to XML file
-		file = open('%s.gpx' % self.name, 'wb')
+		file = open(self.path, 'wb')
 
 		for wp in self.waypoints:
 			wp.outputGPX(self.data, option=option)
@@ -432,8 +433,14 @@ else:
 	#regular run (not test mode)
 	assert(args.input is not None)
 
+
 	input = KMLDocument(args.input)
 	input.read()
 	output_doc.addPoints(input.waypoints)
 
+
 output_doc.close(option=args.tracks)
+
+#FIXME: actually counts number of waypoints AND tracks
+#(each complete track counts as one point)
+print "Wrote %d tracks or waypoints to %s" % (len(output_doc.waypoints), output_doc.path)
