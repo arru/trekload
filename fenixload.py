@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 #TODO:
-# 1. kontroll av monterad Fenix
-# 2. input från my places och hela mappar
+# 1. bra meddelande - kontroll av monterad Fenix
+# 2. input från my places
 # 3. alternativ för att helt skippa höjddata
 # 4. hantera style mappings inuti waypoints
 # 5. använd API för felmeddelanden/varningar
@@ -14,6 +14,7 @@ from fenixload_conf import kml_to_ggpx_overrides, test_items
 import unicodedata
 import argparse
 import os.path
+import logging
 
 import re
 from random import random
@@ -321,11 +322,11 @@ class KMLDocument(object):
 					icon = self.stylemap[style[1:]]
 				else:
 					icon = None
-					print "Warning: could not find style mapping %s on %s, skipping icon" % (style[1:], name)
+					logging.warning("Could not find style mapping %s on %s, skipping icon" % (style[1:], name))
 			else:
 				icon = None
 				#TODO: support inline style mappings
-				print "Warning: no style URL for %s, skipping icon" % name
+				logging.warning("No style URL for %s, skipping icon" % name)
 
 			coords = []
 			if (len(points) == 1):
@@ -350,14 +351,13 @@ class KMLDocument(object):
 							else:
 								coords.append((float(c[1]), float(c[0])))
 					except ValueError:
-						print "Error: could not parse %s (%s) to float coordinates" % (c, name)
+						logging.error("Could not parse %s (%s) to float coordinates" % (c, name))
 						raise
 
 					read_track = Track(coords, name, ('kml', icon), description=desc)
 					self.waypoints.append(read_track)
 				else:
-					print "Warning: skipping %s b/c unrecognized placemark type" % placemark
-
+					logging.warning ("Skipping %s b/c unrecognized placemark type" % placemark)
 
 class GarminGPXDocument(object):
 	def __init__(self, name='output'):
@@ -408,9 +408,19 @@ parser.add_argument('--dest', metavar='d', default=None,
                    help="Specify a destination for output file. Must be a directory. Default: Fenix' GPX folder")
 parser.add_argument('--input', default=os.path.expanduser('~/Desktop/'),
                    help='Input KML file (ignored in test mode)')
+parser.add_argument('--log', default='debug',
+                   help='Logging level')
 
 args = parser.parse_args()
 
+
+LEVELS = {'debug': logging.DEBUG,
+          'info': logging.INFO,
+          'warning': logging.WARNING,
+          'error': logging.ERROR,
+          'critical': logging.CRITICAL}
+level = LEVELS.get(args.log, logging.NOTSET)
+logging.basicConfig(level=logging.DEBUG)
 
 #destination
 if args.dest is None:
@@ -464,14 +474,14 @@ else:
 		output_doc.close(option=args.tracks)
 
 		num_waypoints = len(output_doc.waypoints)
-		print "Wrote %s\t(%d waypoints)" % (dest_filename, num_waypoints)
+		logging.info("Wrote %s\t(%d waypoints)" % (dest_filename, num_waypoints))
 		waypoint_counter += num_waypoints
 
 #FIXME: actually counts number of waypoints AND tracks
 #(each complete track counts as one point)
 if waypoint_counter >= fenix_max_waypoints:
-	print "Warning: waypoint memory exhausted (%s) by this loading session" % waypoint_counter
+	logging.warning("Waypoint memory exhausted (%s) by this loading session" % waypoint_counter)
 elif waypoint_counter > fenix_max_waypoints - waypoint_mem_reserve:
-	print "Warning: waypoint memory almost exhausted (%s) by this loading session" % waypoint_counter
+	logging.warning("Waypoint memory almost exhausted (%s) by this loading session" % waypoint_counter)
 else:
-	print "Wrote %d tracks or waypoints" % waypoint_counter
+	logging.info("Wrote %d tracks or waypoints" % waypoint_counter)
