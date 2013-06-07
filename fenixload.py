@@ -5,6 +5,8 @@
 # 1. kontroll av monterad Fenix
 # 2. input från my places och hela mappar
 # 3. alternativ för att helt skippa höjddata
+# 4. hantera style mappings inuti waypoints
+# 5. använd API för felmeddelanden/varningar
 
 #Test icon IDs
 from fenixload_conf import kml_to_ggpx_overrides, test_items
@@ -271,7 +273,7 @@ class KMLDocument(object):
 		kml = etree.parse(self.path)
 		style_definitions = {}
 
-		line_string_pattern = re.compile("\s*(?:([\d]*[\.]?[\d]+),)(?:([\d]*[\.]?[\d]+),)?([\d]*[\.]?[\d]+)\s+")
+		line_string_pattern = re.compile("\s*(?:([-]?[\d]*[\.]?[\d]+),)(?:([-]?[\d]*[\.]?[\d]+),)?([-]?[\d]*[\.]?[\d]+)\s+")
 
 		#read style definitions
 		for style in kml.xpath('//kml:Document/kml:Style', namespaces=kml_ns):
@@ -312,7 +314,15 @@ class KMLDocument(object):
 				desc = stripped_html.text_content()
 
 			if (style is not None):
-				icon = self.stylemap[style[1:]]
+				if style[1:] in self.stylemap:
+					icon = self.stylemap[style[1:]]
+				else:
+					icon = None
+					print "Warning: could not find style mapping %s on %s, skipping icon" % (style[1:], name)
+			else:
+				icon = None
+				#TODO: support inline style mappings
+				print "Warning: no style URL for %s, skipping icon" % name
 
 			coords = []
 			if (len(points) == 1):
@@ -330,12 +340,15 @@ class KMLDocument(object):
 				line_coords_chunk = placemark.findtext('kml:LineString/kml:coordinates', namespaces=kml_ns)
 				if line_coords_chunk is not None:
 					line_tokens = line_string_pattern.findall(line_coords_chunk)
-
-					for c in line_tokens:
-						if len(c) == 2:
-							coords.append((float(c[1]), float(c[0]), float(c[2])))
-						else:
-							coords.append((float(c[1]), float(c[0])))
+					try:
+						for c in line_tokens:
+							if len(c) == 2:
+								coords.append((float(c[1]), float(c[0]), float(c[2])))
+							else:
+								coords.append((float(c[1]), float(c[0])))
+					except ValueError:
+						print "Error: could not parse %s (%s) to float coordinates" % (c, name)
+						raise
 
 					read_track = Track(coords, name, ('kml', icon), description=desc)
 					self.waypoints.append(read_track)
