@@ -1,11 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-#TODO:
-# 2. input från my places
-# 3. alternativ för att helt skippa höjddata
-# 4. hantera style mappings inuti waypoints
-# 5. använd API för felmeddelanden/varningar
+#	Trekload is licensed under the Revised BSD License:
+#	
+#	Copyright (c) 2013, Arvid Rudling
+#	All rights reserved.
+#	
+#	Redistribution and use in source and binary forms, with or without
+#	modification, are permitted provided that the following conditions are met:
+#	    * Redistributions of source code must retain the above copyright
+#	      notice, this list of conditions and the following disclaimer.
+#	    * Redistributions in binary form must reproduce the above copyright
+#	      notice, this list of conditions and the following disclaimer in the
+#	      documentation and/or other materials provided with the distribution.
+#	    * The name(s) of its contributor(s) may not be used to endorse or promote products
+#	      derived from this software without specific prior written permission.
+#	
+#	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+#	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+#	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#	DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+#	DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+#	(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+#	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+#	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+#	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#TODO (bugs):
+# handle style mappings embedded in waypoints
 
 #Test icon IDs
 from fenixload_conf import kml_to_ggpx_overrides, test_items
@@ -21,10 +44,12 @@ from random import random
 from lxml import etree
 import lxml.html.clean
 
-symbol_default = 'White Dot'
-
+#Garmin symbol code references are available here:
 # http://home.online.no/~sigurdhu/MapSource-text.htm
 # http://home.online.no/~sigurdhu/12MAP_symbols.htm
+
+
+### Fenix specific constants
 
 waypoint_mem_reserve = 25
 fenix_max_waypoints = 1000
@@ -135,6 +160,10 @@ fenix_sym_set = (
 	'Waypoint',
 )
 
+### Generic symbol constants
+
+symbol_default = 'White Dot'
+
 #Standard KML icon equivalents
 kml_to_ggpx_symbols = {
 					#'http://maps.google.com/mapfiles/kml/shapes/grocery.png':'Shopping Center',
@@ -170,13 +199,18 @@ kml_to_ggpx_symbols = {
 
 kml_to_ggpx_symbols.update (kml_to_ggpx_overrides)
 
+### KML & GPX format constants
+
 gpx_version = "1.0"
 
 kml_ns = {'kml':'http://www.opengis.net/kml/2.2'}
 
+# String that gets appended to the wp name when tracks are collapsed to their
+# median points ('--tracks point' option)
 median_point_suffix = '(mitten)'
 
 class Track(object):
+	'''Represents a GIS track (multi-segment path between two locations)'''
 	def __init__(self, coords, name='Untitled', icon=None, description=None):
 		self.coords = []
 		self.coords.extend(coords)
@@ -253,6 +287,7 @@ class Track(object):
 			self.icons)
 
 class Waypoint(Track):
+	'''Representation of GIS waypoint'''
 	def __init__(self, coord3D, name='Untitled', icon=None, description=None):
 		Track.__init__(self, [coord3D], name, icon, description)
 
@@ -265,6 +300,7 @@ class Waypoint(Track):
 
 
 class KMLDocument(object):
+	'''KML document loader/parser class'''
 	def __init__(self, path):
 		self.path = path
 		self.data = None
@@ -359,6 +395,7 @@ class KMLDocument(object):
 					logging.warning ("Skipping %s b/c unrecognized placemark type" % placemark)
 
 class GarminGPXDocument(object):
+	'''GPX file writer'''
 	def __init__(self, name='output'):
 		udata = name.decode("utf-8")
 		self.name = udata.encode('ascii', 'ignore')
@@ -396,7 +433,7 @@ class GarminGPXDocument(object):
 
 		self.xml.write(file, xml_declaration=True, encoding='utf-8')
 
-#Main program flow
+### Main program flow
 
 parser = argparse.ArgumentParser(description='Process KML data and write to Garmin Fenix as .gpx')
 parser.add_argument('--test', action="store_true",
@@ -412,7 +449,7 @@ parser.add_argument('--log', default='debug',
 
 args = parser.parse_args()
 
-
+#Logging
 LEVELS = {'debug': logging.DEBUG,
           'info': logging.INFO,
           'warning': logging.WARNING,
@@ -421,7 +458,7 @@ LEVELS = {'debug': logging.DEBUG,
 level = LEVELS.get(args.log, logging.NOTSET)
 logging.basicConfig(level=logging.DEBUG)
 
-#destination
+#Destination
 if args.dest is None:
 	dest_dir = "/Volumes/GARMIN/Garmin/GPX/"
 	if not os.path.isdir(dest_dir):
@@ -433,6 +470,7 @@ assert (os.path.isdir(dest_dir))
 waypoint_counter = 0
 
 if (args.test):
+	#Test mode
 	test_center = (59.6, 16.53)
 	test_radius = 0.1
 
@@ -448,6 +486,8 @@ if (args.test):
 
 		output_doc.addPoint(test_wp)
 else:
+	#regular conversion (non-test) mode
+
 	#input file/dir
 	input = os.path.abspath(args.input)
 	input_files = []
@@ -463,7 +503,7 @@ else:
 		assert(os.path.exists(input))
 		input_files.append(input)
 
-	#regular run (not test mode)
+	#Iterate through input files
 	for file in input_files:
 		dest_filename = os.path.splitext(os.path.basename(file))[0]
 		output_doc = GarminGPXDocument(os.path.join(dest_dir, dest_filename))
@@ -477,6 +517,8 @@ else:
 		num_waypoints = len(output_doc.waypoints)
 		logging.info("Wrote %s\t(%d waypoints)" % (dest_filename, num_waypoints))
 		waypoint_counter += num_waypoints
+
+#Report number of waypoints written
 
 #FIXME: actually counts number of waypoints AND tracks
 #(each complete track counts as one point)
