@@ -31,9 +31,14 @@ Planned
 
 Compatibility
 -------------
-Designed for and tested with the Garmin Fenix. Should be usable with the other
-Garmin GPS units that are mountable as USB mass storage devices, although only
-Fenix' symbols have been programmed.
+Designed for and tested with the Garmin Fenix. Since all it does is write
+common GPX files it should be usable with other GPS units that are
+mountable as USB mass storage devices, although only Fenix' symbol set has been
+programmed. Brands other than Garmin use different GPX symbol sets, and the
+symbol table would have to be modified to accommodate those.
+
+__No guarantee is made about the accuracy of this script for any purpose, including__
+__use as part of a navigation setup.__ See license file for full disclaimer.
 
 License
 -------
@@ -41,4 +46,7 @@ License
 Trekload is licensed under the Revised BSD License, se LICENSE file
 
 Garmin and Fenix are trademarks of Garmin Ltd. or its subsidiaries.
+Google Earth is a trademark of Google Inc .
 All other trademarks are the property of their respective owners.
+
+The software is developed without any affiliation to the mentioned vendors.
