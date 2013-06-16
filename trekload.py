@@ -31,7 +31,7 @@
 # handle style mappings embedded in waypoints
 
 #Test icon IDs
-from fenixload_conf import kml_to_ggpx_overrides, test_items
+from trekload_conf import kml_to_ggpx_overrides, test_items
 
 import unicodedata
 import argparse
@@ -404,7 +404,7 @@ class GarminGPXDocument(object):
 
 		self.data = etree.Element('gpx',
 								version=gpx_version,
-								creator='fenixload',
+								creator='trekload',
 								#attrib={'{xsi}schemaLocation':'http://www.topografix.com/GPX/1/0/gpx.xsd'},
 								nsmap={
 									#'wptx1' : 'http://www.garmin.com/xmlschemas/WaypointExtension/v1',
