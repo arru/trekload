@@ -39,3 +39,6 @@ License
 -------
 
 Trekload is licensed under the Revised BSD License, se LICENSE file
+
+Garmin and Fenix are trademarks of Garmin Ltd. or its subsidiaries.
+All other trademarks are the property of their respective owners.
