@@ -399,7 +399,6 @@ class GarminGPXDocument(object):
 	def __init__(self, name='output'):
 		udata = name.decode("utf-8")
 		self.name = udata.encode('ascii', 'ignore')
-		self.path = '%s.gpx' % self.name
 		self.waypoints = []
 
 		self.data = etree.Element('gpx',
@@ -426,7 +425,8 @@ class GarminGPXDocument(object):
 
 	def close(self, option):
 		# Save to XML file
-		file = open(self.path, 'wb')
+		path = '%s_%d.gpx' % (self.name, len(self.waypoints))
+		file = open(path, 'wb')
 
 		for wp in self.waypoints:
 			wp.outputGPX(self.data, option=option)
