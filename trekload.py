@@ -399,6 +399,9 @@ class GarminGPXDocument(object):
 	'''GPX file writer'''
 	def __init__(self, name='output'):
 		udata = name.decode("utf-8")
+
+		#Make name pure ASCII and lowercase to improve chances of name matches
+		#between subsequent runs
 		self.name = udata.encode('ascii', 'ignore').lower()
 		self.waypoints = []
 
@@ -427,27 +430,27 @@ class GarminGPXDocument(object):
 	def close(self, option):
 		# Save to XML file
 
-		previous_files = glob.glob("%s_*[0-9].gpx" % self.name)
- 		path = '%s_%d.gpx' % (self.name, len(self.waypoints))
-		file = open(path, 'wb')
+		previous_paths = glob.glob("%s_*[0-9].gpx" % self.name)
+ 		new_path = '%s_%d.gpx' % (self.name, len(self.waypoints))
+		file = open(new_path, 'wb')
 
 		for wp in self.waypoints:
 			wp.outputGPX(self.data, option=option)
 
 		self.xml.write(file, xml_declaration=True, encoding='utf-8')
 
-		if len(previous_files) == 1:
+		if len(previous_paths) == 1:
 			#Only delete previous file if exactly 1 was found
-			previous_filename = previous_files[0]
-			if not os.path.samefile(previous_filename, path):
+			previous_file_path = previous_paths[0]
+			if not os.path.samefile(previous_file_path, new_path):
 				#If name of new file is the same, it has been overwritten
-				logging.info ("Deleting previous file %s" % previous_filename)
-				os.remove(previous_filename)
-		elif len(previous_files) > 1:
+				logging.info ("Deleting previous file %s" % previous_file_path)
+				os.remove(previous_file_path)
+		elif len(previous_paths) > 1:
 			#if several were found, display warning
-			logging.warning("""Found more than one (%d) previous file.
+			logging.warning("""Found more than one previous file (%d).
 To avoid data loss, you have to manually delete previous files.
-New file name is '%s'""" % (len(previous_files), path))
+New file name is '%s'""" % (len(previous_paths), new_path))
 
 ### Main program flow
 
