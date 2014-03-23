@@ -52,11 +52,11 @@ import lxml.html.clean
 
 ### Fenix specific constants
 
-waypoint_mem_reserve = 25
-fenix_max_waypoints = 1000
+WAYPOINT_MEM_RESERVE = 25
+FENIX_MAX_WAYPOINTS = 1000
 
-fenix_sym_missing = (
-	'Ball Park',
+FENIX_SYM_MISSING = (
+'Ball Park',
 	'Bar',
 	'Beach',
 	'Bell',
@@ -87,7 +87,8 @@ fenix_sym_missing = (
 	'Horn',
 	'Hunting Area',
 	'Ice Skating Area',
-	'Large City', 	'Light',
+	'Large City',
+	'Light',
 	'Medium City',
 	'Movie Theater',
 	'Museum',
@@ -121,8 +122,8 @@ fenix_sym_missing = (
 	'Zoo',
 )
 
-fenix_sym_set = (
-	'Airport',
+FENIX_SYM_SET = (
+'Airport',
 	'Amusement Park',
 	'Anchor',
 	'Bank',
@@ -147,7 +148,7 @@ fenix_sym_set = (
 	'Parachute Area',
 	'Park',
 	'Picnic Area',
-	'Private Field', #rendered like 'Restricted Area'
+	'Private Field',  #rendered like 'Restricted Area'
 	'Residence',
 	'Restaurant',
 	'Restroom',
@@ -163,55 +164,56 @@ fenix_sym_set = (
 
 ### Generic symbol constants
 
-symbol_default = 'White Dot'
+SYMBOL_DEFAULT = 'White Dot'
 
 #Standard KML icon equivalents
-kml_to_ggpx_symbols = {
-					#'http://maps.google.com/mapfiles/kml/shapes/grocery.png':'Shopping Center',
-					#'http://mw1.google.com/mw-earth-vectordb/smartmaps_icons/museum-15.png':'Museum',					'http://maps.google.com/mapfiles/kml/pal4/icon61.png':'Flag, Blue',
-					'http://maps.google.com/mapfiles/kml/shapes/cabs.png':'Car',
-					'http://maps.google.com/mapfiles/kml/shapes/camera.png':'Scenic Area',
-					'http://maps.google.com/mapfiles/kml/shapes/campground.png':'Campground',
-					'http://maps.google.com/mapfiles/kml/shapes/caution.png':'Skull and Crossbones',
-					'http://maps.google.com/mapfiles/kml/shapes/dining.png':'Restaurant',
-					'http://maps.google.com/mapfiles/kml/shapes/dollar.png':'Bank',
-					'http://maps.google.com/mapfiles/kml/shapes/fishing.png':'Fishing Area',
-					'http://maps.google.com/mapfiles/kml/shapes/flag.png':'Flag, Blue',
-					'http://maps.google.com/mapfiles/kml/shapes/gas_stations.png':'Gas Station',
-					'http://maps.google.com/mapfiles/kml/shapes/golf.png':'Golf Course',
-					'http://maps.google.com/mapfiles/kml/shapes/hiker.png':'Trail Head',
-					'http://maps.google.com/mapfiles/kml/shapes/homegardenbusiness.png':'Residence',
-					'http://maps.google.com/mapfiles/kml/shapes/hospitals.png':'Medical Facility',
-					'http://maps.google.com/mapfiles/kml/shapes/info_circle.png':'Information',
-					'http://maps.google.com/mapfiles/kml/shapes/lodging.png':'Lodging',
-					'http://maps.google.com/mapfiles/kml/shapes/marina.png':'Anchor',
-					'http://maps.google.com/mapfiles/kml/shapes/open-diamond.png':'Dot, White',
-					'http://maps.google.com/mapfiles/kml/shapes/parking_lot.png':'Car',
-					'http://maps.google.com/mapfiles/kml/shapes/parks.png':'Park',
-					'http://maps.google.com/mapfiles/kml/shapes/phone.png':'Telephone',
-					'http://maps.google.com/mapfiles/kml/shapes/picnic.png':'Picnic Area',
-					'http://maps.google.com/mapfiles/kml/shapes/poi.png':'Waypoint',
-					'http://maps.google.com/mapfiles/kml/shapes/ski.png':'Skiing Area',
-					'http://maps.google.com/mapfiles/kml/shapes/swimming.png':'Swimming Area',
-					'http://maps.google.com/mapfiles/kml/shapes/toilets.png':'Restroom',
-					'http://maps.google.com/mapfiles/kml/shapes/airports.png':'Airport',
-					'':symbol_default
-				}
+kml_to_ggpx_symbols = {  #'http://maps.google.com/mapfiles/kml/shapes/grocery.png':'Shopping Center',
+						 #'http://mw1.google.com/mw-earth-vectordb/smartmaps_icons/museum-15.png':'Museum',					'http://maps.google.com/mapfiles/kml/pal4/icon61.png':'Flag, Blue',
+						 'http://maps.google.com/mapfiles/kml/shapes/cabs.png': 'Car',
+						 'http://maps.google.com/mapfiles/kml/shapes/camera.png': 'Scenic Area',
+						 'http://maps.google.com/mapfiles/kml/shapes/campground.png': 'Campground',
+						 'http://maps.google.com/mapfiles/kml/shapes/caution.png': 'Skull and Crossbones',
+						 'http://maps.google.com/mapfiles/kml/shapes/dining.png': 'Restaurant',
+						 'http://maps.google.com/mapfiles/kml/shapes/dollar.png': 'Bank',
+						 'http://maps.google.com/mapfiles/kml/shapes/fishing.png': 'Fishing Area',
+						 'http://maps.google.com/mapfiles/kml/shapes/flag.png': 'Flag, Blue',
+						 'http://maps.google.com/mapfiles/kml/shapes/gas_stations.png': 'Gas Station',
+						 'http://maps.google.com/mapfiles/kml/shapes/golf.png': 'Golf Course',
+						 'http://maps.google.com/mapfiles/kml/shapes/hiker.png': 'Trail Head',
+						 'http://maps.google.com/mapfiles/kml/shapes/homegardenbusiness.png': 'Residence',
+						 'http://maps.google.com/mapfiles/kml/shapes/hospitals.png': 'Medical Facility',
+						 'http://maps.google.com/mapfiles/kml/shapes/info_circle.png': 'Information',
+						 'http://maps.google.com/mapfiles/kml/shapes/lodging.png': 'Lodging',
+						 'http://maps.google.com/mapfiles/kml/shapes/marina.png': 'Anchor',
+						 'http://maps.google.com/mapfiles/kml/shapes/open-diamond.png': 'Dot, White',
+						 'http://maps.google.com/mapfiles/kml/shapes/parking_lot.png': 'Car',
+						 'http://maps.google.com/mapfiles/kml/shapes/parks.png': 'Park',
+						 'http://maps.google.com/mapfiles/kml/shapes/phone.png': 'Telephone',
+						 'http://maps.google.com/mapfiles/kml/shapes/picnic.png': 'Picnic Area',
+						 'http://maps.google.com/mapfiles/kml/shapes/poi.png': 'Waypoint',
+						 'http://maps.google.com/mapfiles/kml/shapes/ski.png': 'Skiing Area',
+						 'http://maps.google.com/mapfiles/kml/shapes/swimming.png': 'Swimming Area',
+						 'http://maps.google.com/mapfiles/kml/shapes/toilets.png': 'Restroom',
+						 'http://maps.google.com/mapfiles/kml/shapes/airports.png': 'Airport',
+						 '': SYMBOL_DEFAULT
+}
 
-kml_to_ggpx_symbols.update (kml_to_ggpx_overrides)
+kml_to_ggpx_symbols.update(kml_to_ggpx_overrides)
 
 ### KML & GPX format constants
 
 gpx_version = "1.0"
 
-kml_ns = {'kml':'http://www.opengis.net/kml/2.2'}
+kml_ns = {'kml': 'http://www.opengis.net/kml/2.2'}
 
 # String that gets appended to the wp name when tracks are collapsed to their
 # median points ('--tracks point' option)
 median_point_suffix = '(mitten)'
 
+
 class Track(object):
-	'''Represents a GIS track (multi-segment path between two locations)'''
+	"""Represents a GIS track (multi-segment path between two locations)"""
+
 	def __init__(self, coords, name='Untitled', icon=None, description=None):
 		self.coords = []
 		self.coords.extend(coords)
@@ -220,26 +222,27 @@ class Track(object):
 		self.description = description
 
 		if icon:
-			self._setIcon (icon[0], icon[1])
+			self._set_icon(icon[0], icon[1])
 
-	def _setIcon(self, format, id):
+	def _set_icon(self, format, id):
 		self.icons[format] = id
 
-		if(format == 'kml'):
-			if(id in kml_to_ggpx_symbols):
+		if format == 'kml':
+			if id in kml_to_ggpx_symbols:
 				self.icons['ggpx'] = kml_to_ggpx_symbols[self.icons['kml']]
 			else:
 				self.icons['ggpx'] = None
 
-	def _makePoint(self, parent, coord, type_code):
+	@staticmethod
+	def _make_point(parent, coord, type_code):
 		wpt = etree.SubElement(parent, type_code, lat=str(coord[0]), lon=str(coord[1]))
-		if (len(coord) == 3 and coord[2] != 0.0):
+		if len(coord) == 3 and coord[2] != 0.0:
 			ele = etree.SubElement(wpt, 'ele')
 			ele.text = str(coord[2])
 
 		return wpt
 
-	def _makeMetadata(self, parent, option=''):
+	def _make_metadata(self, parent, option=''):
 		name = etree.SubElement(parent, 'name')
 
 		#name.text = etree.CDATA(self.name.decode('utf-8'))
@@ -249,10 +252,10 @@ class Track(object):
 			name.text = self.name.decode('utf-8')
 
 		sym = etree.SubElement(parent, 'sym')
-		if('ggpx' in self.icons):
+		if 'ggpx' in self.icons:
 			sym.text = self.icons['ggpx']
 		else:
-			sym.text = symbol_default
+			sym.text = SYMBOL_DEFAULT
 
 		if self.description:
 			desc = etree.SubElement(parent, 'desc')
@@ -263,7 +266,7 @@ class Track(object):
 			else:
 				desc.text = self.description
 
-	def outputGPX(self, parent, option):
+	def output_GPX(self, parent, option):
 		elem = None
 		if option == 'full':
 			elem = etree.SubElement(parent, 'trk')
@@ -271,15 +274,15 @@ class Track(object):
 
 			assert (len(self.coords) > 0)
 			for c in self.coords:
-				self._makePoint(seg, c, type_code='trkpt')
+				Track._make_point(seg, c, type_code='trkpt')
 		elif option == 'point':
 			pt = self.coords[len(self.coords) / 2]
-			elem = self._makePoint(parent, pt, type_code='wpt')
+			elem = Track._make_point(parent, pt, type_code='wpt')
 
 		if elem is None:
 			assert (option == 'skip')
 		else:
-			self._makeMetadata(elem, option)
+			self._make_metadata(elem, option)
 
 	def __str__(self):
 		return "%s: %s, - %s" % (
@@ -287,21 +290,24 @@ class Track(object):
 			self.coords,
 			self.icons)
 
+
 class Waypoint(Track):
-	'''Representation of GIS waypoint'''
+	"""Representation of GIS waypoint"""
+
 	def __init__(self, coord3D, name='Untitled', icon=None, description=None):
 		Track.__init__(self, [coord3D], name, icon, description)
 
-	def outputGPX(self, parent, option=''):
+	def output_GPX(self, parent, option=''):
 		if len(self.coords) == 1:
-			wpt = self._makePoint(parent, self.coords[0], type_code='wpt')
-			self._makeMetadata(wpt)
+			wpt = Waypoint._make_point(parent, self.coords[0], type_code='wpt')
+			self._make_metadata(wpt)
 		else:
 			assert (len(self.coords) == 0)
 
 
 class KMLDocument(object):
-	'''KML document loader/parser class'''
+	"""KML document loader/parser class"""
+
 	def __init__(self, path):
 		self.path = path
 		self.data = None
@@ -313,14 +319,15 @@ class KMLDocument(object):
 		kml = etree.parse(self.path)
 		style_definitions = {}
 
-		line_string_pattern = re.compile("\s*(?:([-]?[\d]*[\.]?[\d]+),)(?:([-]?[\d]*[\.]?[\d]+),)?([-]?[\d]*[\.]?[\d]+)\s+")
+		line_string_pattern = re.compile(
+			"\s*(?:([-]?[\d]*[\.]?[\d]+),)(?:([-]?[\d]*[\.]?[\d]+),)?([-]?[\d]*[\.]?[\d]+)\s+")
 
 		#read style definitions
 		for style in kml.xpath('//kml:Document/kml:Style', namespaces=kml_ns):
 			id = style.attrib['id']
-			assert(id)
+			assert id
 			icon_list = style.xpath('kml:IconStyle/kml:Icon/kml:href', namespaces=kml_ns)
-			if (len(icon_list) > 0):
+			if len(icon_list) > 0:
 				icon_href = icon_list[0].text
 			else:
 				icon_href = ''
@@ -335,9 +342,9 @@ class KMLDocument(object):
 				if pair.findtext('kml:key', namespaces=kml_ns) == 'normal':
 					style_url = pair.findtext('kml:styleUrl', namespaces=kml_ns)[1:]
 
-			assert(style_url)
+			assert (style_url)
 			self.stylemap[style_mapping.attrib['id']] = style_definitions[style_url]
-			#logging.debug( "%s -> %s" % (style_mapping.attrib['id'], style_definitions[style_urself.		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):)
+		#logging.debug( "%s -> %s" % (style_mapping.attrib['id'], style_definitions[style_urself.		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):)
 
 		for placemark in kml.xpath('//kml:Placemark', namespaces=kml_ns):
 			points = placemark.xpath('kml:Point', namespaces=kml_ns)
@@ -353,7 +360,7 @@ class KMLDocument(object):
 
 				desc = stripped_html.text_content()
 
-			if (style is not None):
+			if style is not None:
 				if style[1:] in self.stylemap:
 					icon = self.stylemap[style[1:]]
 				else:
@@ -365,11 +372,11 @@ class KMLDocument(object):
 				logging.warning("No style URL for %s, skipping icon" % name)
 
 			coords = []
-			if (len(points) == 1):
+			if len(points) == 1:
 				point = points[0]
 				raw_coords = point.findtext('kml:coordinates', namespaces=kml_ns).split(',')
 
-				if (len(raw_coords) >= 3):
+				if len(raw_coords) >= 3:
 					point = (float(raw_coords[1]), float(raw_coords[0]), float(raw_coords[2]))
 				else:
 					point = (float(raw_coords[1]), float(raw_coords[0]))
@@ -393,10 +400,12 @@ class KMLDocument(object):
 					read_track = Track(coords, name, ('kml', icon), description=desc)
 					self.waypoints.append(read_track)
 				else:
-					logging.warning ("Skipping %s b/c unrecognized placemark type" % placemark)
+					logging.warning("Skipping %s b/c unrecognized placemark type" % placemark)
+
 
 class GarminGPXDocument(object):
-	'''GPX file writer'''
+	"""GPX file writer"""
+
 	def __init__(self, name='output'):
 		udata = name.decode("utf-8")
 
@@ -406,45 +415,43 @@ class GarminGPXDocument(object):
 		self.waypoints = []
 
 		self.data = etree.Element('gpx',
-								version=gpx_version,
-								creator='trekload',
-								#attrib={'{xsi}schemaLocation':'http://www.topografix.com/GPX/1/0/gpx.xsd'},
-								nsmap={
-									#'wptx1' : 'http://www.garmin.com/xmlschemas/WaypointExtension/v1',
-									#'gpxx':'http://www.garmin.com/xmlschemas/GpxExtensions/v3',
-									#'gpxtpx':'http://www.garmin.com/xmlschemas/TrackPointExtension/v1',
-									'xsi':'http://www.w3.org/2001/XMLSchema-instance',
-									None:'http://www.topografix.com/GPX/1/0'}
-								)
+								  version=gpx_version,
+								  creator='trekload',
+								  #attrib={'{xsi}schemaLocation':'http://www.topografix.com/GPX/1/0/gpx.xsd'},
+								  nsmap={  #'wptx1' : 'http://www.garmin.com/xmlschemas/WaypointExtension/v1',
+										   #'gpxx':'http://www.garmin.com/xmlschemas/GpxExtensions/v3',
+										   #'gpxtpx':'http://www.garmin.com/xmlschemas/TrackPointExtension/v1',
+										   'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+										   None: 'http://www.topografix.com/GPX/1/0'}
+		)
 
 		self.xml = etree.ElementTree(self.data)
 
-
-	def addPoints(self, wpoint_list):
+	def add_points(self, wpoint_list):
 		for wpoint in wpoint_list:
-			self.addPoint(wpoint)
+			self.add_point(wpoint)
 
-	def addPoint(self, wpoint):
+	def add_point(self, wpoint):
 		self.waypoints.append(wpoint)
 
 	def close(self, option):
 		# Save to XML file
 
 		previous_paths = glob.glob("%s_*[0-9].gpx" % self.name)
- 		new_path = '%s_%d.gpx' % (self.name, len(self.waypoints))
-		file = open(new_path, 'wb')
+		new_path = '%s_%d.gpx' % (self.name, len(self.waypoints))
+		output_file = open(new_path, 'wb')
 
 		for wp in self.waypoints:
-			wp.outputGPX(self.data, option=option)
+			wp.output_GPX(self.data, option=option)
 
-		self.xml.write(file, xml_declaration=True, encoding='utf-8')
+		self.xml.write(output_file, xml_declaration=True, encoding='utf-8')
 
 		if len(previous_paths) == 1:
 			#Only delete previous file if exactly 1 was found
 			previous_file_path = previous_paths[0]
 			if not os.path.samefile(previous_file_path, new_path):
 				#If name of new file is the same, it has been overwritten
-				logging.info ("Deleting previous file %s" % previous_file_path)
+				logging.info("Deleting previous file %s" % previous_file_path)
 				os.remove(previous_file_path)
 		elif len(previous_paths) > 1:
 			#if several were found, display warning
@@ -456,24 +463,24 @@ New file name is '%s'""" % (len(previous_paths), new_path))
 
 parser = argparse.ArgumentParser(description='Process KML data and write to Garmin Fenix as .gpx')
 parser.add_argument('--test', action="store_true",
-                   help='Output test gpx with symbols 0-test max')
+					help='Output test gpx with symbols 0-test max')
 parser.add_argument('--tracks', default='point',
-                   help='KML tracks: full, point or skip. Default: point')
+					help='KML tracks: full, point or skip. Default: point')
 parser.add_argument('--dest', metavar='OUTPUT', default=None,
-                   help="Specify a destination for output file. Must be a directory. Default: Fenix' GPX folder")
+					help="Specify a destination for output file. Must be a directory. Default: Fenix' GPX folder")
 parser.add_argument('--input', default=os.path.expanduser('~/Desktop/'),
-                   help='Input KML file (ignored in test mode)')
+					help='Input KML file (ignored in test mode)')
 parser.add_argument('--log', default='debug',
-                   help='Logging level')
+					help='Logging level')
 
 args = parser.parse_args()
 
 #Logging
 LEVELS = {'debug': logging.DEBUG,
-          'info': logging.INFO,
-          'warning': logging.WARNING,
-          'error': logging.ERROR,
-          'critical': logging.CRITICAL}
+		  'info': logging.INFO,
+		  'warning': logging.WARNING,
+		  'error': logging.ERROR,
+		  'critical': logging.CRITICAL}
 level = LEVELS.get(args.log, logging.NOTSET)
 logging.basicConfig(level=logging.DEBUG)
 
@@ -488,48 +495,53 @@ assert (os.path.isdir(dest_dir))
 
 waypoint_counter = 0
 
-if (args.test):
+if args.test:
 	#Test mode
 	test_center = (59.6, 16.53)
 	test_radius = 0.1
+
+	output_doc = GarminGPXDocument(os.path.join(dest_dir, 'trekload_test'))
 
 	test_step = test_radius / (len(test_items) + 1)
 	r = test_step
 	#for d in range(0, args.test):
 	for d in test_items:
-		direction = [random()*2.0 - 1.0, random()*2.0 - 1.0]
-		r = r + test_step
+		direction = [random() * 2.0 - 1.0, random() * 2.0 - 1.0]
+		r += test_step
 		offset = [v * r for v in direction]
-		point = [test_center[i] + offset[i] for i in range(0, 2)]
-		test_wp = Waypoint(point, name=d, icon=('ggpx', str(d)))
+		test_point = [test_center[i] + offset[i] for i in range(0, 2)]
+		test_wp = Waypoint(test_point, name=d, icon=('ggpx', str(d)))
 
-		output_doc.addPoint(test_wp)
+		output_doc.add_point(test_wp)
+
+	output_doc.close()
+
 else:
 	#regular conversion (non-test) mode
 
 	#input file/dir
-	input = os.path.abspath(args.input)
+	input_ = os.path.abspath(args.input)
 	input_files = []
 
-	if (os.path.isdir(input)):
-		for fileName in os.listdir(input):
+	if os.path.isdir(input_):
+		for fileName in os.listdir(input_):
 			splitName = os.path.splitext(fileName)
 			if len(splitName) > 1:
 				fileType = splitName[1]
 				if fileType.lower() == '.kml':
-					input_files.append(os.path.join(input, fileName))
+					input_files.append(os.path.join(input_, fileName))
 	else:
-		assert(os.path.exists(input))
-		input_files.append(input)
+		assert (os.path.exists(input_))
+		input_files.append(input_)
 
 	#Iterate through input files
-	for file in input_files:
-		dest_filename = os.path.splitext(os.path.basename(file))[0]
+	for input_file in input_files:
+		dest_filename = os.path.splitext(os.path.basename(input_file))[0]
 		output_doc = GarminGPXDocument(os.path.join(dest_dir, dest_filename))
 
-		input = KMLDocument(file)
-		input.read()
-		output_doc.addPoints(input.waypoints)
+		input_ = KMLDocument(input_file)
+		input_.read()
+		output_doc.add_points(input_.waypoints)
 
 		output_doc.close(option=args.tracks)
 
@@ -541,9 +553,9 @@ else:
 
 #FIXME: actually counts number of waypoints AND tracks
 #(each complete track counts as one point)
-if waypoint_counter >= fenix_max_waypoints:
+if waypoint_counter >= FENIX_MAX_WAYPOINTS:
 	logging.warning("Waypoint memory exhausted (%s) by this loading session" % waypoint_counter)
-elif waypoint_counter > fenix_max_waypoints - waypoint_mem_reserve:
+elif waypoint_counter > FENIX_MAX_WAYPOINTS - WAYPOINT_MEM_RESERVE:
 	logging.warning("Waypoint memory almost exhausted (%s) by this loading session" % waypoint_counter)
 else:
 	logging.info("Wrote %d tracks or waypoints" % waypoint_counter)
