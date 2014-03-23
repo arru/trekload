@@ -459,7 +459,7 @@ parser.add_argument('--test', action="store_true",
                    help='Output test gpx with symbols 0-test max')
 parser.add_argument('--tracks', default='point',
                    help='KML tracks: full, point or skip. Default: point')
-parser.add_argument('--dest', metavar='d', default=None,
+parser.add_argument('--dest', metavar='OUTPUT', default=None,
                    help="Specify a destination for output file. Must be a directory. Default: Fenix' GPX folder")
 parser.add_argument('--input', default=os.path.expanduser('~/Desktop/'),
                    help='Input KML file (ignored in test mode)')
