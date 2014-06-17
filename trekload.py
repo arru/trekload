@@ -29,6 +29,7 @@
 
 #TODO (bugs):
 # handle style mappings embedded in waypoints
+# handle Polygon
 
 #Test icon IDs
 from trekload_conf import kml_to_ggpx_overrides, test_items
@@ -199,6 +200,7 @@ kml_to_ggpx_symbols = {  #'http://maps.google.com/mapfiles/kml/shapes/grocery.pn
 }
 
 kml_to_ggpx_symbols.update(kml_to_ggpx_overrides)
+kml_to_ggpx_misses = set()
 
 ### KML & GPX format constants
 
@@ -225,12 +227,14 @@ class Track(object):
 			self._set_icon(icon[0], icon[1])
 
 	def _set_icon(self, format, id):
+		global kml_to_ggpx_misses
 		self.icons[format] = id
 
 		if format == 'kml':
 			if id in kml_to_ggpx_symbols:
 				self.icons['ggpx'] = kml_to_ggpx_symbols[self.icons['kml']]
 			else:
+				kml_to_ggpx_misses.add(self.icons['kml'])
 				self.icons['ggpx'] = None
 
 	@staticmethod
@@ -361,11 +365,15 @@ class KMLDocument(object):
 				desc = stripped_html.text_content()
 
 			if style is not None:
-				if style[1:] in self.stylemap:
-					icon = self.stylemap[style[1:]]
+				if style[0] == '#':
+					style = style[1:]
+					if style in self.stylemap:
+						icon = self.stylemap[style]
+					else:
+						icon = None
+						logging.warning("Could not find style mapping %s on %s, skipping icon" % (style, name))
 				else:
-					icon = None
-					logging.warning("Could not find style mapping %s on %s, skipping icon" % (style[1:], name))
+					icon = style
 			else:
 				icon = None
 				#TODO: support inline style mappings
@@ -400,8 +408,17 @@ class KMLDocument(object):
 					read_track = Track(coords, name, ('kml', icon), description=desc)
 					self.waypoints.append(read_track)
 				else:
-					logging.warning("Skipping %s b/c unrecognized placemark type" % placemark)
-
+					polygon = placemark.findtext('kml:Polygon', namespaces=kml_ns)
+					if polygon is not None:
+						#TODO: support polygons, could be output as tracks
+						logging.error("Skipping '%s' - polygon placemarks not currently supported" % name)
+					else:
+						erroneous_features = placemark.xpath('kml:*', namespaces=kml_ns)
+						error_descriptions = []
+						for err in erroneous_features:
+							error_descriptions.append(err.tag.split('}')[1])
+						logging.error(
+							"Skipping '%s' b/c unrecognized placemark contents (%s)" % (name, str(", ").join(error_descriptions)))
 
 class GarminGPXDocument(object):
 	"""GPX file writer"""
@@ -550,6 +567,11 @@ else:
 		waypoint_counter += num_waypoints
 
 #Report number of waypoints written
+
+if kml_to_ggpx_misses:
+	print ("The following icons have no GGPX->KML, their placemarks were written without icon:")
+	for miss in kml_to_ggpx_misses:
+		print "'%s': '???'," % miss
 
 #FIXME: actually counts number of waypoints AND tracks
 #(each complete track counts as one point)
