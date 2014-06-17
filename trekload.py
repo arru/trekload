@@ -31,7 +31,7 @@
 # handle style mappings embedded in waypoints
 # handle Polygon
 
-#Test icon IDs
+#User configured and test icon IDs
 from trekload_conf import kml_to_ggpx_overrides, test_items
 
 import unicodedata
@@ -124,7 +124,7 @@ FENIX_SYM_MISSING = (
 )
 
 FENIX_SYM_SET = (
-'Airport',
+	'Airport',
 	'Amusement Park',
 	'Anchor',
 	'Bank',
