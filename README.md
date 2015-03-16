@@ -29,6 +29,10 @@ Planned
 * Option to import entire *My Places* from Google Earth
 * Option to leave out altitude data altogether
 
+Requirements
+____________
+* LXML - http://lxml.de/
+
 Compatibility
 -------------
 Designed for and tested with the Garmin Fenix. Since all it does is write
