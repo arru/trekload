@@ -31,7 +31,7 @@ Planned
 
 Requirements
 ____________
-* LXML - http://lxml.de/
+* [LXML](http://lxml.de/)
 
 Compatibility
 -------------
@@ -47,7 +47,7 @@ __use as part of a navigation setup.__ See license file for full disclaimer.
 License
 -------
 
-Trekload is licensed under the Revised BSD License, se LICENSE file
+Trekload is copyright © 2013-2015 Arvid Rudling. Licensed under the Revised BSD License, se LICENSE file
 
 Garmin and Fenix are trademarks of Garmin Ltd. or its subsidiaries.
 Google Earth is a trademark of Google Inc .
