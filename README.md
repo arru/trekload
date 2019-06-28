@@ -20,8 +20,9 @@ Features
 * Prune KML tracks into single waypoints, or skip them entirely
 * Remove HTML in waypoint descriptions, trim description length and convert filenames to ASCII
 * All pruning features and hardware GPS targetting yields significantly smaller GPX files than GPSBabel, for example
-* Python 2.7, no external dependencies
+* Python 2.7
 * Uses default paths that are specific to MacOS X, but should work on any OS as long as arguments are specified manually
+* Exclude waypoints outside Geohash boundaries
 
 Planned
 -------
@@ -31,7 +32,8 @@ Planned
 
 Requirements
 ____________
-* [LXML](http://lxml.de/)
+* [LXML](https://lxml.de/)
+* [GeoHash module](https://github.com/vinsci/geohash/) ´pip install geohash2´
 
 Compatibility
 -------------

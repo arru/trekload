@@ -39,6 +39,7 @@ import argparse
 import os.path
 import glob
 import logging
+import geohash2 as Geohash
 
 import re
 from random import random
@@ -211,6 +212,20 @@ kml_ns = {'kml': 'http://www.opengis.net/kml/2.2'}
 # String that gets appended to the wp name when tracks are collapsed to their
 # median points ('--tracks point' option)
 median_point_suffix = '(mitten)'
+
+
+class Boundary(object):
+	"""Represents a geographic boundary"""
+	def __init__(self, geohash):
+		self.geohash = geohash
+
+	def contains(self, waypoint):
+		for c in waypoint.coords:
+			wp_hash = Geohash.encode(c[0], c[1], precision=len(self.geohash))
+			if self.geohash != wp_hash:
+				return False
+
+		return True
 
 
 class Track(object):
@@ -481,6 +496,8 @@ New file name is '%s'""" % (len(previous_paths), new_path))
 parser = argparse.ArgumentParser(description='Process KML data and write to Garmin Fenix as .gpx')
 parser.add_argument('--test', action="store_true",
 					help='Output test gpx with symbols 0-test max')
+parser.add_argument('--boundary', default=None, nargs='+',
+					help='Geohash defining a boundary; only points within the boundary will be exported. Several items can be used to delineate a more detailed area.')
 parser.add_argument('--tracks', default='point',
 					help='KML tracks: full, point or skip. Default: point')
 parser.add_argument('--dest', metavar='OUTPUT', default=None,
@@ -551,6 +568,11 @@ else:
 		assert (os.path.exists(input_))
 		input_files.append(input_)
 
+	#Optional boundary arguments
+	boundaries = []
+	for b in args.boundary:
+		boundaries.append(Boundary(b))
+
 	#Iterate through input files
 	for input_file in input_files:
 		dest_filename = os.path.splitext(os.path.basename(input_file))[0]
@@ -558,8 +580,16 @@ else:
 
 		input_ = KMLDocument(input_file)
 		input_.read()
-		output_doc.add_points(input_.waypoints)
 
+		if boundaries:
+			for wp in input_.waypoints:
+				for b in boundaries: 
+					if b.contains(wp):
+						output_doc.add_point(wp)
+						break
+		else:
+			output_doc.add_points(input_.waypoints)
+			
 		output_doc.close(option=args.tracks)
 
 		num_waypoints = len(output_doc.waypoints)
